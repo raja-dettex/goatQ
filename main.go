@@ -4,39 +4,39 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"os"
 	"time"
 
 	"github.com/raja-dettex/goatQ/daemon"
 )
 
 func main() {
-	readCh := make(chan []byte)
-	opts := daemon.Opts{ListenAddr: ":3000", TopicName: "test"}
+	listenAddr := os.Getenv("LISTEN_ADDR")
+	masterAddr := os.Getenv("MASTER_ADDR")
+	opts := daemon.Opts{ListenAddr: listenAddr, TopicName: "test", MasterAddr: masterAddr}
 	d := daemon.NewDaemon(opts)
 	if err := d.Start(); err != nil {
 		log.Fatal(err)
 	}
 	time.Sleep(time.Second * 3)
-	go func() {
-		for i := 0; i < 5; i++ {
-			go sendWriteMessagetoSocket(fmt.Sprintf("WRITE hello%d", i))
-		}
-	}()
+	// go func() {
+	// 	for i := 0; i < 5; i++ {
+	// 		go sendWriteMessagetoSocket(fmt.Sprintf("WRITE hello%d", i))
+	// 	}
+	// }()
 
 	//time.Sleep(time.Second * 3)
+	// go func() {
+	// 	for {
+	// 		time.Sleep(time.Second * 3)
+	// 		go sendReadMessagetoSocket()
+	// 	}
+	// }()
 
-	go func(ch chan []byte) {
-		for i := 0; i < 15; i++ {
-			go sendReadMessagetoSocket(ch)
-		}
-	}(readCh)
-	for data := range readCh {
-		fmt.Println("fetched ", string(data))
-	}
 	select {}
 }
 
-func sendReadMessagetoSocket(readCh chan []byte) {
+func sendReadMessagetoSocket() {
 	conn, err := net.Dial("tcp", ":3000")
 	if err != nil {
 		fmt.Println(err)
@@ -51,7 +51,7 @@ func sendReadMessagetoSocket(readCh chan []byte) {
 		if err != nil {
 			fmt.Println("Read from the connection error ", err)
 		}
-		readCh <- buff[:n]
+		fmt.Println(string(buff[:n]))
 	}
 }
 

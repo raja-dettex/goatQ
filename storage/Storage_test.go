@@ -5,6 +5,24 @@ import (
 	"testing"
 )
 
+func BenchmarkInMemoryStore(b *testing.B) {
+	store := NewDefaultInMemoryStorageEngine()
+	for j := 0; j < b.N; j++ {
+		go func() {
+			for i := 0; i < 2; i++ {
+				store.SaveUnit([]byte(fmt.Sprintf("data %d", i)))
+			}
+		}()
+		go func() {
+			for i := 0; i < 2; i++ {
+				data, _ := store.FetchUnit()
+				fmt.Println(string(data))
+				fmt.Println("max offset ", store.MaxOffset())
+			}
+		}()
+	}
+}
+
 func TestDefaultInMemoryStoreConcurrentSafe(t *testing.T) {
 	store := NewDefaultInMemoryStorageEngine()
 	go func() {

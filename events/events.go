@@ -10,11 +10,13 @@ type EVENTMessage string
 const (
 	EVENTRead  EVENTMessage = "READ"
 	EVENTWrite EVENTMessage = "WRITE"
+	EVENTJoin  EVENTMessage = "JOIN"
 )
 
 type Event struct {
-	Command EVENTMessage
-	Value   []byte
+	Command    EVENTMessage
+	Value      []byte
+	RemoteAddr string
 }
 
 func ParseEvent(rawMessage []byte) (*Event, error) {
@@ -30,6 +32,9 @@ func ParseEvent(rawMessage []byte) (*Event, error) {
 	}
 	if event.Command == EVENTWrite {
 		event.Value = []byte(message[1])
+	}
+	if event.Command == EVENTJoin {
+		event.RemoteAddr = message[1]
 	}
 	return event, nil
 }
